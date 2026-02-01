@@ -6,7 +6,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.exceptions import TelegramBadRequest
 
-TOKEN = "8521212878:AAHzq9i2b9rneukr6Ak_j47rPjBrQTdee90"
+TOKEN = "ВСТАВЬ СВОЙ ТОКЕН СЮДА"
 
 bot = Bot(token=TOKEN)
 dp = Dispatcher(storage=MemoryStorage())
@@ -304,3 +304,4 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+
