@@ -11,22 +11,26 @@ TOKEN = "8521212878:AAHzq9i2b9rneukr6Ak_j47rPjBrQTdee90"
 bot = Bot(token=TOKEN)
 dp = Dispatcher(storage=MemoryStorage())
 
+ADMIN_USER_ID = 6935205868
+
 PICTURES = {
     "it": "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNHJueGZueXF6eXJ6eXJ6eXJ6eXJ6eXJ6eXJ6eXJ6eXJ6eXJ6JmVwPXYxX2ludGVybmFsX2dpZl9ieV9pZCZjdD1n/SWoSkN6DxTszqIKEqv/giphy.gif",
-    "creative": "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNHJueGZueXF6eXJ6eXJ6eXJ6eXJ6eXJ6eXJ6eXJ6eXJ6eXJ6JmVwPXYxX2ludGVybmFsX2dpZl9ieV9pZCZjdD1n/3o7TKMGpxxcaOlfK80/giphy.gif",
-    "social": "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNHJueGZueXF6eXJ6eXJ6eXJ6eXJ6eXJ6eXJ6eXJ6eXJ6eXJ6JmVwPXYxX2ludGVybmFsX2dpZl9ieV9pZCZjdD1n/3o7TKVUn7iM8FMEU24/giphy.gif",
-    "logic": "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNHJueGZueXF6eXJ6eXJ6eXJ6eXJ6eXJ6eXJ6eXJ6eXJ6eXJ6eXJ6eXJ6JmVwPXYxX2ludGVybmFsX2dpZl9ieV9pZCZjdD1n/l41lFwgp6YURLWIn6/giphy.gif",
-    "practice": "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExM3N5YjBndmtwaWZ4Ynp6eTN6eTN6eTN6eTN6eTN6eTN6eTN6eTN6JmVwPXYxX2ludGVybmFsX2dpZl9ieV9pZCZjdD1n/3o7TKVUn7iM8FMEU24/giphy.gif"
+    "creative": "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNnhzdWRlaWdnNDNrcGl6M2w5czg1czg1czg1czg1czg1czg1czg1czg1czg1czg1JmVwPXYxX2ludGVybmFsX2dpZl9ieV9pZCZjdD1n/l4FGyzm3aD7w92G3N/giphy.gif",
+    "social": "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExMTFjMzg0Y2NtbWFnZmtzZmZzZmZzZmZzZmZzZmZzZmZzZmZzZmZzZmZzJmVwPXYxX2ludGVybmFsX2dpZl9ieV9pZCZjdD1n/3o7TKuWf3e9q65r50g/giphy.gif",
+    "logic": "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExZWU5YzF6ejRxNDdwdm1sdnZscHNnc2xicHlxOXA0dGRubzJ3djc0eCZjdD1n/l4FGx4tG43jK5uWbu/giphy.gif",
+    "practice": "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOWJqbzUzd3lqZnZkdzJ0MXBocWkxcXJkNW4zZWpjd2g2bTRzdzZ2ZCZjdD1n/26uf3i48l7059fV3i/giphy.gif"
 }
 
 class Quiz(StatesGroup):
     q1, q2, q3, q4, q5, q6, q7, q8, q9, q10 = State(), State(), State(), State(), State(), State(), State(), State(), State(), State()
     q11, q12, q13, q14, q15 = State(), State(), State(), State(), State()
+    feedback_mode = State()
 
 def main_kb():
     return types.ReplyKeyboardMarkup(keyboard=[
         [types.KeyboardButton(text="🚀 Начать тест")],
         [types.KeyboardButton(text="💡 О проекте")],
+        [types.KeyboardButton(text="💬 Обратная связь")],
         [types.KeyboardButton(text="/help")],
         [types.KeyboardButton(text="🗑️ Очистить чат")]
     ], resize_keyboard=True)
@@ -34,7 +38,8 @@ def main_kb():
 def ans_kb():
     return types.ReplyKeyboardMarkup(keyboard=[
         [types.KeyboardButton(text="А"), types.KeyboardButton(text="Б"), types.KeyboardButton(text="В"), types.KeyboardButton(text="Г"), types.KeyboardButton(text="Д")],
-        [types.KeyboardButton(text="❌ Отменить тест"), types.KeyboardButton(text="🗑️ Очистить чат")]
+        [types.KeyboardButton(text="❌ Отменить тест"), types.KeyboardButton(text="🗑️ Очистить чат")],
+        [types.KeyboardButton(text="💬 Обратная связь")]
     ], resize_keyboard=True)
 
 ABOUT_TEXT = (
@@ -57,9 +62,13 @@ HELP_TEXT = (
     "💡 *О проекте* - Узнать больше о том, как работает бот.\n"
     "❌ *Отменить тест* - Прервать тестирование в любой момент.\n"
     "🗑️ *Очистить чат* - Удалить все сообщения из чата (которые бот ещё может удалить).\n"
+    "💬 *Обратная связь* - Отправить свои предложения или замечания разработчику бота.\n"
     "❓ */help* - Показать это сообщение со списком команд.\n\n"
     "Тестируйте и находите свое призвание!"
 )
+
+FEEDBACK_PROMPT = "Пожалуйста, напишите ваше сообщение для обратной связи. Мы ценим каждое мнение! Чтобы вернуться в главное меню без отправки, нажмите '❌ Отменить тест'."
+FEEDBACK_CONFIRMATION_USER = "Спасибо за вашу обратную связь! Мы обязательно рассмотрим ваше предложение."
 
 QUESTIONS = [
     "1. Что тебе интереснее изучать?\nА) Языки программирования\nБ) Историю искусств\nВ) Психологию общения\nГ) Математические модели\nД) Устройство механизмов",
@@ -87,12 +96,11 @@ async def save_message_id(state: FSMContext, message_id: int):
 
 @dp.message(Command("start"))
 async def start(m: types.Message, state: FSMContext):
-
-    await state.update_data(message_ids=[m.message_id]) 
+    await state.update_data(message_ids=[m.message_id])
 
     inline_kb = types.InlineKeyboardMarkup(inline_keyboard=[
         [types.InlineKeyboardButton(text="Подробнее о боте", callback_data="show_about_inline")],
-        [types.InlineKeyboardButton(text="Проект на GitHub", url="https://github.com/YourGitHubLinkHere")]
+        [types.InlineKeyboardButton(text="Проект на GitHub", url="https://github.com/YourGitHubLinkHere")] # ВСТАВЬ СВОЮ ССЫЛКУ!
     ])
     
     bot_message = await m.answer(
@@ -107,13 +115,11 @@ async def start(m: types.Message, state: FSMContext):
     bot_message = await m.answer("Основные команды доступны на клавиатуре:", reply_markup=main_kb())
     await save_message_id(state, bot_message.message_id)
 
-
 @dp.callback_query(F.data == "show_about_inline")
 async def process_callback_about_inline(call: types.CallbackQuery, state: FSMContext):
     bot_message = await call.message.answer(ABOUT_TEXT, parse_mode="Markdown")
     await save_message_id(state, bot_message.message_id)
     await call.answer()
-
 
 @dp.message(Command("help"))
 async def help_command(m: types.Message, state: FSMContext):
@@ -121,13 +127,11 @@ async def help_command(m: types.Message, state: FSMContext):
     bot_message = await m.answer(HELP_TEXT, reply_markup=main_kb(), parse_mode="Markdown")
     await save_message_id(state, bot_message.message_id)
 
-
 @dp.message(F.text == "💡 О проекте")
 async def about(m: types.Message, state: FSMContext):
     await save_message_id(state, m.message_id)
     bot_message = await m.answer(ABOUT_TEXT, reply_markup=main_kb(), parse_mode="Markdown")
     await save_message_id(state, bot_message.message_id)
-
 
 @dp.message(F.text.contains("Начать тест"))
 async def run_quiz(m: types.Message, state: FSMContext):
@@ -137,7 +141,6 @@ async def run_quiz(m: types.Message, state: FSMContext):
     bot_message = await m.answer(QUESTIONS[0], reply_markup=ans_kb())
     await save_message_id(state, bot_message.message_id)
 
-
 @dp.message(F.text == "❌ Отменить тест")
 async def cancel(m: types.Message, state: FSMContext):
     await save_message_id(state, m.message_id)
@@ -145,10 +148,10 @@ async def cancel(m: types.Message, state: FSMContext):
     bot_message = await m.answer("Тест отменен. Возвращаемся в главное меню.", reply_markup=main_kb())
     await save_message_id(state, bot_message.message_id)
 
-
 @dp.message(F.text == "🗑️ Очистить чат")
 async def clear_chat(m: types.Message, state: FSMContext):
     current_chat_id = m.chat.id
+    
     await save_message_id(state, m.message_id) 
 
     data = await state.get_data()
@@ -164,7 +167,9 @@ async def clear_chat(m: types.Message, state: FSMContext):
                 print(f"Ошибка при удалении сообщения {msg_id}: {e}")
         except Exception as e:
             print(f"Неожиданная ошибка при удалении сообщения {msg_id}: {e}")
+
     await state.update_data(message_ids=[])
+
     bot_message = await m.answer(
         f"🗑️ Удалено {deleted_count} недавних сообщений. "
         "Сообщения старше 48 часов, а также те, что были отправлены *после* нажатия кнопки 'Очистить чат' (включая это сообщение), удалить невозможно.", 
@@ -172,12 +177,40 @@ async def clear_chat(m: types.Message, state: FSMContext):
     )
     await save_message_id(state, bot_message.message_id)
 
+@dp.message(F.text == "💬 Обратная связь")
+async def feedback_entry(m: types.Message, state: FSMContext):
+    await save_message_id(state, m.message_id)
+    await state.set_state(Quiz.feedback_mode)
+    bot_message = await m.answer(FEEDBACK_PROMPT, reply_markup=types.ReplyKeyboardRemove())
+    await save_message_id(state, bot_message.message_id)
+
+@dp.message(Quiz.feedback_mode)
+async def process_feedback(m: types.Message, state: FSMContext):
+    await save_message_id(state, m.message_id)
+
+    if m.text == "❌ Отменить тест":
+        await state.clear()
+        bot_message = await m.answer("Ввод обратной связи отменен. Возвращаемся в главное меню.", reply_markup=main_kb())
+        await save_message_id(state, bot_message.message_id)
+        return
+
+    feedback_text = m.text
+    user_info = f"Пользователь {m.from_user.full_name} (@{m.from_user.username}, ID: {m.from_user.id})"
+    
+    try:
+        await bot.send_message(
+            chat_id=ADMIN_USER_ID,
+            text=f"Новая обратная связь от {user_info}:\n\n{feedback_text}"
+        )
+    except Exception as e:
+        print(f"Ошибка при отправке обратной связи админу (ID: {ADMIN_USER_ID}): {e}")
+
+    bot_message = await m.answer(FEEDBACK_CONFIRMATION_USER, reply_markup=main_kb())
+    await save_message_id(state, bot_message.message_id)
+    await state.clear()
 
 async def handle_answer(m: types.Message, state: FSMContext, next_state, q_idx):
-    if m.text == "❌ Отменить тест":
-        return
-    
-    if m.text == "🗑️ Очистить чат":
+    if m.text in ["❌ Отменить тест", "🗑️ Очистить чат", "💬 Обратная связь"]:
         return
 
     await save_message_id(state, m.message_id)
@@ -190,7 +223,7 @@ async def handle_answer(m: types.Message, state: FSMContext, next_state, q_idx):
     elif ans == "Г": data['logic'] += 1
     elif ans == "Д": data['practice'] += 1
     else:
-        bot_message = await m.answer("Пожалуйста, выберите один из вариантов (А, Б, В, Г, Д) или нажмите 'Отменить тест'/'Очистить чат'.")
+        bot_message = await m.answer("Пожалуйста, выберите один из вариантов (А, Б, В, Г, Д) или нажмите 'Отменить тест'/'Очистить чат'/'Обратная связь'.")
         await save_message_id(state, bot_message.message_id)
         return
 
@@ -230,35 +263,36 @@ async def handle_answer(m: types.Message, state: FSMContext, next_state, q_idx):
         await state.clear()
 
 @dp.message(Quiz.q1)
-async def p1(m: types.Message, s: FSMContext): await handle_answer(m, s, Quiz.q2, 1)
+async def p1(m: types.Message, state: FSMContext): await handle_answer(m, state, Quiz.q2, 1)
 @dp.message(Quiz.q2)
-async def p2(m: types.Message, s: FSMContext): await handle_answer(m, s, Quiz.q3, 2)
+async def p2(m: types.Message, state: FSMContext): await handle_answer(m, state, Quiz.q3, 2)
 @dp.message(Quiz.q3)
-async def p3(m: types.Message, s: FSMContext): await handle_answer(m, s, Quiz.q4, 3)
+async def p3(m: types.Message, state: FSMContext): await handle_answer(m, state, Quiz.q4, 3)
 @dp.message(Quiz.q4)
-async def p4(m: types.Message, s: FSMContext): await handle_answer(m, s, Quiz.q5, 4)
+async def p4(m: types.Message, state: FSMContext): await handle_answer(m, state, Quiz.q5, 4)
 @dp.message(Quiz.q5)
-async def p5(m: types.Message, s: FSMContext): await handle_answer(m, s, Quiz.q6, 5)
+async def p5(m: types.Message, state: FSMContext): await handle_answer(m, state, Quiz.q6, 5)
 @dp.message(Quiz.q6)
-async def p6(m: types.Message, s: FSMContext): await handle_answer(m, s, Quiz.q7, 6)
+async def p6(m: types.Message, state: FSMContext): await handle_answer(m, state, Quiz.q7, 6)
 @dp.message(Quiz.q7)
-async def p7(m: types.Message, s: FSMContext): await handle_answer(m, s, Quiz.q8, 7)
+async def p7(m: types.Message, state: FSMContext): await handle_answer(m, state, Quiz.q8, 7)
 @dp.message(Quiz.q8)
-async def p8(m: types.Message, s: FSMContext): await handle_answer(m, s, Quiz.q9, 8)
+async def p8(m: types.Message, state: FSMContext): await handle_answer(m, state, Quiz.q9, 8)
 @dp.message(Quiz.q9)
-async def p9(m: types.Message, s: FSMContext): await handle_answer(m, s, Quiz.q10, 9)
+async def p9(m: types.Message, state: FSMContext): await handle_answer(m, state, Quiz.q10, 9)
 @dp.message(Quiz.q10)
-async def p10(m: types.Message, s: FSMContext): await handle_answer(m, s, Quiz.q11, 10)
+async def p10(m: types.Message, state: FSMContext): await handle_answer(m, state, Quiz.q11, 10)
 @dp.message(Quiz.q11)
-async def p11(m: types.Message, s: FSMContext): await handle_answer(m, s, Quiz.q12, 11)
+async def p11(m: types.Message, state: FSMContext): await handle_answer(m, state, Quiz.q12, 11)
 @dp.message(Quiz.q12)
-async def p12(m: types.Message, s: FSMContext): await handle_answer(m, s, Quiz.q13, 12)
+async def p12(m: types.Message, state: FSMContext): await handle_answer(m, state, Quiz.q13, 12)
 @dp.message(Quiz.q13)
-async def p13(m: types.Message, s: FSMContext): await handle_answer(m, s, Quiz.q14, 13)
+async def p13(m: types.Message, state: FSMContext): await handle_answer(m, state, Quiz.q14, 13)
 @dp.message(Quiz.q14)
-async def p14(m: types.Message, s: FSMContext): await handle_answer(m, s, Quiz.q15, 14)
+async def p14(m: types.Message, state: FSMContext): await handle_answer(m, state, Quiz.q15, 14)
 @dp.message(Quiz.q15)
-async def p15(m: types.Message, s: FSMContext): await handle_answer(m, s, None, 0)
+async def p15(m: types.Message, state: FSMContext): await handle_answer(m, state, None, 0)
+
 
 async def main():
     bot_info = await bot.get_me()
